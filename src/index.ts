@@ -118,9 +118,10 @@ app.get("/", (req, res) => {
 -------------------------------------------------------------- */
 export const api = onRequest(
   {
+    invoker: "public",
     secrets: [WEB_API_KEY, JWT_SECRET, DB_Url, DB_PROD, OPENAI_API_KEY],
     minInstances: 0,
-    timeoutSeconds: 120, // Increase this
+    timeoutSeconds: 120,
     memory: "512MiB",
   },
   async (req, res) => {
@@ -142,9 +143,10 @@ export const api = onRequest(
 
 export const apiUat = onRequest(
   {
+    invoker: "public",
     secrets: [WEB_API_KEY, JWT_SECRET, DB_Url, DB_PROD, OPENAI_API_KEY],
     minInstances: 0,
-    timeoutSeconds: 120, // Increase this
+    timeoutSeconds: 120,
     memory: "512MiB",
   },
   async (req, res) => {
