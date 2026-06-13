@@ -19,10 +19,9 @@ jobs:
         run: npm run lint
       - name: Run Build
         run: npm run build
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LEARNER_SPACE_E08D4 }}
       - name: Deploy to Firebase Functions
-        run: |
-          echo "$FIREBASE_SERVICE_ACCOUNT" > service-account.json
-          export GOOGLE_APPLICATION_CREDENTIALS=service-account.json
-          npx firebase-tools deploy --only functions:api --project learner-space-e08d4
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LEARNER_SPACE_E08D4 }}
+        run: npx firebase-tools deploy --only functions:api --project learner-space-e08d4
