@@ -1,0 +1,28 @@
+name: Deploy Firebase Functions (UAT)
+on:
+  push:
+    branches:
+      - uat
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run Lint
+        run: npm run lint
+      - name: Run Build
+        run: npm run build
+      - name: Deploy to Firebase Functions
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS=service-account.json
+          npx firebase-tools deploy --only functions:apiUat --project learner-space-e08d4
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LEARNER_SPACE_E08D4 }}
