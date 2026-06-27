@@ -44,27 +44,11 @@ app.use((req, res, next) => {
   }
   next();
 });
-
+import cors from "cors";
+app.use(cors({ origin: true, credentials: true }));
 /* --------------------------------------------------------------
-   1️⃣ FIREBASE GEN-2 CORS FIX — MUST BE FIRST
+   1️⃣ FIREBASE GEN-2 CORS FIX — HANDLED BY ONREQUEST OPTIONS
 -------------------------------------------------------------- */
-app.use((req, res, next) => {
-  res.set("Access-Control-Allow-Origin", req.headers.origin || "");
-  res.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-  );
-  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.set("Access-Control-Allow-Credentials", "true");
-
-  // Fix duplicate headers for OPTIONS
-  if (req.method === "OPTIONS") {
-    res.status(204).send("");
-    return;
-  }
-
-  next();
-});
 
 /* --------------------------------------------------------------
    2️⃣ BODY PARSER — DO NOT PARSE MULTIPART UPLOADS
@@ -119,17 +103,25 @@ app.get("/", (req, res) => {
 export const api = onRequest(
   {
     secrets: [WEB_API_KEY, JWT_SECRET, DB_Url, DB_PROD, OPENAI_API_KEY],
+    cors: false,
     minInstances: 0,
     timeoutSeconds: 120,
     memory: "512MiB",
   },
   async (req, res) => {
+    if (req.method === "OPTIONS") {
+      app(req, res);
+      return;
+    }
+
     if (!isMongoConnected) {
       try {
-        console.log("Attempting MongoDB connection for Production...");
-        await connectMongo(DB_PROD.value());
+        const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+        const dbSecret = isEmulator ? DB_Url.value() : DB_PROD.value();
+        console.log(`Attempting MongoDB connection for Production${isEmulator ? ' (Emulator using UAT DB)' : ''}...`);
+        await connectMongo(dbSecret);
         isMongoConnected = true;
-        console.log("✅ MongoDB connected successfully for Production");
+        console.log(`✅ MongoDB connected successfully for Production${isEmulator ? ' (Emulator using UAT DB)' : ''}`);
       } catch (error) {
         console.error("❌ MongoDB connection failed:", error);
         res.status(503).send("Service Unavailable: Database initialization failed.");
@@ -143,11 +135,17 @@ export const api = onRequest(
 export const apiUat = onRequest(
   {
     secrets: [WEB_API_KEY, JWT_SECRET, DB_Url, DB_PROD, OPENAI_API_KEY],
+    cors: false,
     minInstances: 0,
     timeoutSeconds: 120,
     memory: "512MiB",
   },
   async (req, res) => {
+    if (req.method === "OPTIONS") {
+      app(req, res);
+      return;
+    }
+
     if (!isMongoConnected) {
       try {
         console.log("Attempting MongoDB connection for UAT...");
