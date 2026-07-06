@@ -90,7 +90,6 @@ async createCompany(data: Partial<Company>) {
     const adminEmails = [
       "adesh.srivastava@learnerspace.in",
       "habeeb@learnerspace.in",
-      "admin@gmail.com",
     ];
 
     for (const email of adminEmails) {
