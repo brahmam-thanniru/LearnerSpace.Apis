@@ -1,6 +1,6 @@
 /* eslint-disable linebreak-style */
 // functions/secrets.ts
-import {defineSecret} from "firebase-functions/params";
+import { defineSecret } from "firebase-functions/params";
 
 
 export const JWT_SECRET = defineSecret("JWT_SECRET");

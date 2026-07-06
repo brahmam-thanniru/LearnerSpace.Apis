@@ -87,23 +87,11 @@ async createCompany(data: Partial<Company>) {
     // ----------------------------------------------
     // STEP 4: Update Admin Lead Counters (STRICT)
     // ----------------------------------------------
-    const adminEmails = [
-      "adesh.srivastava@learnerspace.in",
-      "habeeb@learnerspace.in",
-    ];
-
-    for (const email of adminEmails) {
-      const updateResult = await AdminModel.findOneAndUpdate(
-        { companyemail: email },
-        { $inc: { totalNoOfleads: 1 } },
-        { session, new: true }
-      );
-
-      // ❗ IMPORTANT: force failure if admin not found
-      if (!updateResult) {
-        throw new Error(`Admin company not found: ${email}`);
-      }
-    }
+    await AdminModel.updateMany(
+      {},
+      { $inc: { totalNoOfleads: 1 } },
+      { session }
+    );
 
     // ----------------------------------------------
     // STEP 5: Admin Periodic Lead Stats
