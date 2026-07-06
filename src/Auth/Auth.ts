@@ -34,10 +34,7 @@ const COOKIE_OPTIONS = {
   maxAge: 1000 * 60 * 60 * 1, // 1 hour
 };
 
-const REFRESH_COOKIE_OPTIONS = {
-  ...COOKIE_OPTIONS,
-  maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-};
+
 
 const JWT_SECRET = {
   value: () => process.env.JWT_SECRET || "your_jwt_secret_key",
@@ -46,7 +43,7 @@ const JWT_SECRET = {
 export class AuthController {
   static async login(req: Request, res: Response) {
     try {
-      const { email, password } = req.body;
+      const { email, password, rememberMe } = req.body;
 
       if (!email || !password) {
         return res.status(400).json({
@@ -98,6 +95,11 @@ export class AuthController {
         { expiresIn: "1h" }
       );
 
+      const refreshTokenDurationStr = rememberMe ? "30d" : "1d";
+      const refreshTokenCookieMaxAge = rememberMe 
+        ? 1000 * 60 * 60 * 24 * 30 // 30 days
+        : 1000 * 60 * 60 * 24 * 1; // 1 day
+
       const refreshToken = jwt.sign(
         {
           uid: user._id,
@@ -106,11 +108,14 @@ export class AuthController {
           sessionId: sessionId,
         },
         JWT_SECRET.value(),
-        { expiresIn: "30d" }
+        { expiresIn: refreshTokenDurationStr }
       );
 
       res.cookie("accessToken", accessToken, COOKIE_OPTIONS);
-      res.cookie("refreshToken", refreshToken, REFRESH_COOKIE_OPTIONS);
+      res.cookie("refreshToken", refreshToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: refreshTokenCookieMaxAge,
+      });
 
       const baseUser = {
         id: user._id,
