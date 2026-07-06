@@ -59,7 +59,7 @@ export class AuthController {
         AdminInternModel.findOne({ email }).exec(),
       ]);
 
-      let user: any = admin ?? company ?? intern;
+      const user: any = admin ?? company ?? intern;
 
       if (!user) {
         return res.status(400).json({
