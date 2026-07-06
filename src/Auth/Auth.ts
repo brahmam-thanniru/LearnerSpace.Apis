@@ -52,21 +52,14 @@ export class AuthController {
         });
       }
 
-      const collections: Array<{ mod: any; role: string }> = [
-        { mod: AdminModel, role: Role.ADMIN },
-        { mod: CompanyModel, role: Role.COMPANY },
-        { mod: AdminInternModel, role: Role.ADMIN_INTERN },
-      ];
+      // Query all collections in parallel for better performance
+      const [admin, company, intern] = await Promise.all([
+        AdminModel.findOne({ email }).exec(),
+        CompanyModel.findOne({ email }).exec(),
+        AdminInternModel.findOne({ email }).exec(),
+      ]);
 
-      let user: any = null;
-      const sessionId = uuid();
-      for (const col of collections) {
-        const found = await (col.mod as any).findOne({ email }).exec();
-        if (found) {
-          user = found;
-          break;
-        }
-      }
+      let user: any = admin ?? company ?? intern;
 
       if (!user) {
         return res.status(400).json({
@@ -83,6 +76,9 @@ export class AuthController {
           message: "Invalid password",
         });
       }
+
+      // Generate session ID only after successful authentication
+      const sessionId = uuid();
 
       const accessToken = jwt.sign(
         {
@@ -134,9 +130,7 @@ export class AuthController {
           isVerified: user.isVerified ?? 0,
           companycategory: user.category ?? null,
         };
-      }
-      if (user.role === Role.COMPANY) {
-        user.activeSessionToken = sessionId;
+        // Update session token in a single combined block
         await CompanyModel.updateOne(
           { _id: user._id },
           { $set: { activeSessionToken: sessionId } }
