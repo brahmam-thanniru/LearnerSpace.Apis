@@ -42,10 +42,13 @@ export class CompanyService extends BaseService<Company> {
     return this.model.findOne({ companyEmail }).exec();
   }
 async createCompany(data: Partial<Company>) {
-  if (data.PersonalEmail === "") {
+  if (!data.PersonalEmail) {
     delete data.PersonalEmail;
+  } else if (data.PersonalEmail.toLowerCase() === data.email?.toLowerCase()) {
+    throw new Error("Personal email cannot be the same as the company email");
   }
-  if (data.name === "") {
+
+  if (!data.name) {
     delete data.name;
   }
 
