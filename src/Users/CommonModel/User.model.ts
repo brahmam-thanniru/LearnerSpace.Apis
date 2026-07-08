@@ -101,7 +101,7 @@ export class Company {
   @prop()
   public name?: string;
 
-  @prop({ unique: true, index: true, sparse: true })
+  @prop({ unique: true, index: true })
   public PersonalEmail?: string;
 
   @prop({
