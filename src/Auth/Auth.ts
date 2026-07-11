@@ -490,7 +490,7 @@ export class AuthController {
 
   static async protectedRoute(req: Request, res: Response) {
     try {
-      const accessToken = req.cookies?.accessToken;
+      const accessToken = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
 
       if (!accessToken) {
         return res.status(401).json({
@@ -515,12 +515,20 @@ export class AuthController {
         sessionId: decoded.sessionId,
       };
 
+      let isVerified;
+      if (decoded.role === Role.COMPANY) {
+        const companyUser = await CompanyModel.findById(decoded.uid).select("isVerified").lean();
+        if (companyUser) {
+          isVerified = companyUser.isVerified;
+        }
+      }
 
       return res.status(200).json({
         success: true,
         status: 200,
         user: {
           role: req.user.role,
+          isVerified: isVerified,
         },
       });
     } catch {
